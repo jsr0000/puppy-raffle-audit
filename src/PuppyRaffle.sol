@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+pragma solidity ^0.7.6; //@audit - need to update compiler version
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -77,7 +77,7 @@ contract PuppyRaffle is ERC721, Ownable {
     /// @notice duplicate entrants are not allowed
     /// @param newPlayers the list of players to enter the raffle
     function enterRaffle(address[] memory newPlayers) public payable {
-        require(msg.value == entranceFee * newPlayers.length, "PuppyRaffle: Must send enough to enter raffle");
+        require(msg.value == entranceFee * newPlayers.length, "PuppyRaffle: Must send enough to enter raffle"); //@audit - could add a custom error
         for (uint256 i = 0; i < newPlayers.length; i++) {
             players.push(newPlayers[i]);
         }
@@ -85,7 +85,7 @@ contract PuppyRaffle is ERC721, Ownable {
         // Check for duplicates
         for (uint256 i = 0; i < players.length - 1; i++) {
             for (uint256 j = i + 1; j < players.length; j++) {
-                require(players[i] != players[j], "PuppyRaffle: Duplicate player");
+                require(players[i] != players[j], "PuppyRaffle: Duplicate player"); //@audit - could add a custom error
             }
         }
         emit RaffleEnter(newPlayers);
@@ -98,9 +98,9 @@ contract PuppyRaffle is ERC721, Ownable {
         require(playerAddress == msg.sender, "PuppyRaffle: Only the player can refund");
         require(playerAddress != address(0), "PuppyRaffle: Player already refunded, or is not active");
 
-        payable(msg.sender).sendValue(entranceFee);
+        payable(msg.sender).sendValue(entranceFee); //@audit - could use transfer instead of sendValue
 
-        players[playerIndex] = address(0);
+        players[playerIndex] = address(0); //@audit - could use delete instead otherwise it will be left in the array
         emit RaffleRefunded(playerAddress);
     }
 
@@ -126,7 +126,7 @@ contract PuppyRaffle is ERC721, Ownable {
         require(block.timestamp >= raffleStartTime + raffleDuration, "PuppyRaffle: Raffle not over");
         require(players.length >= 4, "PuppyRaffle: Need at least 4 players");
         uint256 winnerIndex =
-            uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp, block.difficulty))) % players.length;
+            uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp, block.difficulty))) % players.length; //@audit - this is not a truly random number 
         address winner = players[winnerIndex];
         uint256 totalAmountCollected = players.length * entranceFee;
         uint256 prizePool = (totalAmountCollected * 80) / 100;
