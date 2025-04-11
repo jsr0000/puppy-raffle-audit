@@ -117,7 +117,7 @@ contract PuppyRaffle is ERC721, Ownable {
             playerAddress != address(0),
             "PuppyRaffle: Player already refunded, or is not active"
         );
-
+        //@audit - reentrancy
         payable(msg.sender).sendValue(entranceFee); //@audit - could use transfer instead of sendValue
 
         players[playerIndex] = address(0); //@audit - could use delete instead otherwise it will be left in the array
@@ -147,24 +147,27 @@ contract PuppyRaffle is ERC721, Ownable {
     /// @dev we reset the active players array after the winner is selected
     /// @dev we send 80% of the funds to the winner, the other 20% goes to the feeAddress
     function selectWinner() external {
+        //@audit - does this follow CEI?
         require(
-            block.timestamp >= raffleStartTime + raffleDuration,
+            block.timestamp >= raffleStartTime + raffleDuration, //@audit - are the duration and time being set corre tly
             "PuppyRaffle: Raffle not over"
         );
         require(players.length >= 4, "PuppyRaffle: Need at least 4 players");
         uint256 winnerIndex = uint256(
             keccak256(
                 abi.encodePacked(msg.sender, block.timestamp, block.difficulty)
-            )
+            ) // @audit - Is this selection process fair/truly random?
         ) % players.length; //@audit - this is not a truly random number
         address winner = players[winnerIndex];
         uint256 totalAmountCollected = players.length * entranceFee;
         uint256 prizePool = (totalAmountCollected * 80) / 100;
         uint256 fee = (totalAmountCollected * 20) / 100;
-        totalFees = totalFees + uint64(fee);
-
+        totalFees = totalFees + uint64(fee); //@audit - integer overflow
+        // fix - use a newer version of solidity
+        // @audit - where is the tokenId/tokenSupply being incremented?
         uint256 tokenId = totalSupply();
 
+        // @audit - more weak randomeness
         // We use a different RNG calculate from the winnerIndex to determine rarity
         uint256 rarity = uint256(
             keccak256(abi.encodePacked(msg.sender, block.difficulty))
@@ -182,7 +185,7 @@ contract PuppyRaffle is ERC721, Ownable {
         previousWinner = winner;
         (bool success, ) = winner.call{value: prizePool}("");
         require(success, "PuppyRaffle: Failed to send prize pool to winner");
-        _safeMint(winner, tokenId);
+        _safeMint(winner, tokenId); //@audit - what is _safeMint doing after our external call?
     }
 
     /// @notice this function will withdraw the fees to the feeAddress
