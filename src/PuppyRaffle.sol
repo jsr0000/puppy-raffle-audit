@@ -180,9 +180,10 @@ contract PuppyRaffle is ERC721, Ownable {
             tokenIdToRarity[tokenId] = LEGENDARY_RARITY;
         }
 
-        delete players;
-        raffleStartTime = block.timestamp;
-        previousWinner = winner;
+        delete players; // resetting the players array
+        raffleStartTime = block.timestamp; // resetting the raffle start time
+        previousWinner = winner; // vanity, doesnt impact much
+        // @audit - winner wouldnt be able to receive reward if fallback function was broken
         (bool success, ) = winner.call{value: prizePool}("");
         require(success, "PuppyRaffle: Failed to send prize pool to winner");
         _safeMint(winner, tokenId); //@audit - what is _safeMint doing after our external call?
@@ -190,12 +191,14 @@ contract PuppyRaffle is ERC721, Ownable {
 
     /// @notice this function will withdraw the fees to the feeAddress
     function withdrawFees() external {
+        // @audit - if there are players, fees cant be withdrawn
         require(
             address(this).balance == uint256(totalFees),
             "PuppyRaffle: There are currently players active!"
         );
         uint256 feesToWithdraw = totalFees;
         totalFees = 0;
+        // @audit - what if the feeAddress is a contract that reverts?
         (bool success, ) = feeAddress.call{value: feesToWithdraw}("");
         require(success, "PuppyRaffle: Failed to withdraw fees");
     }
