@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6; //@audit - need to update compiler version
+pragma solidity ^0.7.6; //@audit - this is a floating pragma. Best practice is to use a specific version
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -19,9 +19,9 @@ contract PuppyRaffle is ERC721, Ownable {
     using Address for address payable;
 
     uint256 public immutable entranceFee;
-
+    // @audit - could follow naming conventions eg s_variableName
     address[] public players;
-    uint256 public raffleDuration;
+    uint256 public raffleDuration; //@audit - could change this to a constant or immutable variable to save gas G
     uint256 public raffleStartTime;
     address public previousWinner;
 
@@ -101,6 +101,7 @@ contract PuppyRaffle is ERC721, Ownable {
                 ); //@audit - DoS attack
             }
         }
+        // q if its an empty array do we still emit the event?
         emit RaffleEnter(newPlayers);
     }
 
@@ -147,7 +148,7 @@ contract PuppyRaffle is ERC721, Ownable {
     /// @dev we reset the active players array after the winner is selected
     /// @dev we send 80% of the funds to the winner, the other 20% goes to the feeAddress
     function selectWinner() external {
-        //@audit - does this follow CEI?
+        //@audit - recommend to follow CEI
         require(
             block.timestamp >= raffleStartTime + raffleDuration, //@audit - are the duration and time being set corre tly
             "PuppyRaffle: Raffle not over"
@@ -159,8 +160,9 @@ contract PuppyRaffle is ERC721, Ownable {
             ) // @audit - Is this selection process fair/truly random?
         ) % players.length; //@audit - this is not a truly random number
         address winner = players[winnerIndex];
+        // @audit - why not just do address(this).balance?
         uint256 totalAmountCollected = players.length * entranceFee;
-        uint256 prizePool = (totalAmountCollected * 80) / 100;
+        uint256 prizePool = (totalAmountCollected * 80) / 100; //@audit - assign magic numbers to named constants
         uint256 fee = (totalAmountCollected * 20) / 100;
         totalFees = totalFees + uint64(fee); //@audit - integer overflow
         // fix - use a newer version of solidity
@@ -207,10 +209,12 @@ contract PuppyRaffle is ERC721, Ownable {
     /// @param newFeeAddress the new address to send fees to
     function changeFeeAddress(address newFeeAddress) external onlyOwner {
         feeAddress = newFeeAddress;
+        // @audit - are we missing events?
         emit FeeAddressChanged(newFeeAddress);
     }
 
     /// @notice this function will return true if the msg.sender is an active player
+    // @audit - this isn't used anywhere? I/G
     function _isActivePlayer() internal view returns (bool) {
         for (uint256 i = 0; i < players.length; i++) {
             if (players[i] == msg.sender) {
