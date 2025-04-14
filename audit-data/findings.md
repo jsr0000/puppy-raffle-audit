@@ -26,21 +26,22 @@ header-includes:
 
 # Puppy Raffle Audit Report
 
-Prepared by: Josh Regnart
+Prepared by: 
+
+- Josh Regnart
+
 Lead Auditors: 
 
 - [Josh Regnart](https://joshregnart.vercel.app/)
+
 Assisting Auditors:
 
 - None
 
-# Table of contents
-<details>
-
-<summary>See table</summary>
+# Table of Contents
 
 - [Puppy Raffle Audit Report](#puppy-raffle-audit-report)
-- [Table of contents](#table-of-contents)
+- [Table of Contents](#table-of-contents)
 - [Disclaimer](#disclaimer)
 - [Risk Classification](#risk-classification)
 - [Audit Details](#audit-details)
@@ -48,7 +49,7 @@ Assisting Auditors:
 - [Protocol Summary](#protocol-summary)
   - [Roles](#roles)
 - [Executive Summary](#executive-summary)
-  - [Issues found](#issues-found)
+- [Issues found](#issues-found)
 - [Findings](#findings)
   - [High](#high)
     - [\[H-1\] Reentrancy attack in `PuppyRaffle::refund` allows entrant to drain raffle balance](#h-1-reentrancy-attack-in-puppyrafflerefund-allows-entrant-to-drain-raffle-balance)
@@ -76,8 +77,7 @@ Assisting Auditors:
   - [Gas](#gas)
     - [\[G-1\] Unchanged state variables should be declared constant or immutable](#g-1-unchanged-state-variables-should-be-declared-constant-or-immutable)
     - [\[G-2\] Storage Variables in a Loop Should be Cached](#g-2-storage-variables-in-a-loop-should-be-cached)
-</details>
-</br>
+
 
 # Disclaimer
 
@@ -117,7 +117,9 @@ Puppy Raffle is a protocol dedicated to raffling off puppy NFTs with variying ra
 
 # Executive Summary
 
-## Issues found
+The audit of the Puppy Raffle smart contract revealed several critical security vulnerabilities that pose significant risks to the protocol. Three high-severity issues were identified: a reentrancy vulnerability in the refund function that could allow attackers to drain the contract's balance, weak randomness in winner selection that makes the raffle outcome predictable and manipulatable, and an integer overflow vulnerability in the fee calculation that could result in lost protocol fees. Additionally, five medium-severity issues were found, including a potential denial-of-service attack vector in the player entry mechanism and various issues with smart contract wallet interactions. The audit also uncovered one low-severity issue and ten informational findings related to code quality and best practices. These findings indicate that the contract requires significant modifications to ensure security and reliability before deployment.
+
+# Issues found
 
 | Severity | Number of issues found |
 | -------- | ---------------------- |
